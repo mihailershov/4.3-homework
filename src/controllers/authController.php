@@ -15,6 +15,10 @@ function isInputCorrect($login, $password)
     }
 }
 
+if (!empty($_POST['getNickname'])) {
+    echo $_SESSION['user'];
+}
+
 if (!empty($_POST['authButton'])) {
 
     isInputCorrect($_POST['login'], $_POST['password']);
@@ -49,6 +53,7 @@ if (!empty($_POST['regButton'])) {
     }
 
     if ($auth->register($login, $password)) {
-        echo json_encode(['location' => 'index.php']);
+        $answer['notice'] = 'Теперь войдите, используя указанные данные';
+        echo json_encode($answer);
     }
 }

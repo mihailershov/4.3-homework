@@ -10,13 +10,13 @@ class TaskTable extends Task
 
         switch ($sortingType) {
             case 'date':
-                $query = "SELECT * FROM tasks ORDER BY date_added ASC";
+                $query = "SELECT * FROM task ORDER BY date_added ASC";
                 break;
             case 'status':
-                $query = "SELECT * FROM tasks ORDER BY is_done ASC";
+                $query = "SELECT * FROM task ORDER BY is_done ASC";
                 break;
             case 'description':
-                $query = "SELECT * FROM tasks ORDER BY description ASC";
+                $query = "SELECT * FROM task ORDER BY description ASC";
                 break;
             default:
                 die('Произошла ошибка сортировки, попробуйте еще раз');

@@ -1,5 +1,15 @@
 $(function () {
 
+    var nickname;
+
+    $.post({
+        url: 'src/controllers/authController.php',
+        data: 'getNickname=1',
+        success: function (data) {
+            nickname = data;
+        }
+    });
+
     $('.addTaskForm').on('submit', function (e) { // Обработка формы добавления задачи
         var description = $('textarea'),
             form = $(this);
@@ -13,6 +23,8 @@ $(function () {
                 var tableRow =
                         $('<tr>' +
                             '<td>' + data['description'] + '</td>' +
+                            '<td>' + data['user_id'] + '</td>' +
+                            '<td>' + data['assigned_user_id'] + '</td>' +
                             '<td style="color: orange">В процессе</td>' +
                             '<td>' + data['date_added'] + '</td>' +
                             '<td>' +
@@ -36,6 +48,8 @@ $(function () {
                     var tasks = $('.tasks');
                     tasks.html(
                         '<form method="POST" class="sortForm">' +
+                        '<h2 class="nickname">' + nickname + ', это задачи, созданные вами</h2>' +
+                        '<div>' +
                         '<label>' +
                         'Сортировать по: ' +
                         '<select name="sortBy" id="sortBy">' +
@@ -45,10 +59,13 @@ $(function () {
                         '</select>' +
                         '</label> ' +
                         '<input type="submit" name="sort" id="sort" value="Сортировка"> ' +
+                        '</div>' +
                         '</form>' +
                         '<table>' +
                         '<tr>' +
                         '<td>Задача</td>' +
+                        '<td>Автор</td>' +
+                        '<td>Исполнитель</td>' +
                         '<td>Статус</td>' +
                         '<td>Дата добавления</td>' +
                         '<td>Действия</td>' +
@@ -129,21 +146,21 @@ $(function () {
                 if (tableTr.length - 1 === 0) { // Если мы удаляем последную задачу, убрать таблицу
                     $('.tasks').html(
                         '<p class="smile">&#9785;</p>' +
-                        '<p style="text-align: center;">Вы пока не добавили ни одной задачи</p>'
+                        '<p style="text-align: center;">' + nickname + ', вы пока не добавили ни одной задачи</p>'
                     );
                     return;
                 }
                 div.closest('tr').remove();
                 tableTr.each(function () {
-                   if ($(this).index() % 2 === 0) {
-                       $(this).css({
-                           backgroundColor: '#eeeeee'
-                       })
-                   } else {
-                       $(this).css({
-                           backgroundColor: 'white'
-                       })
-                   }
+                    if ($(this).index() % 2 === 0) {
+                        $(this).css({
+                            backgroundColor: '#eeeeee'
+                        })
+                    } else {
+                        $(this).css({
+                            backgroundColor: 'white'
+                        })
+                    }
                 });
             }
         });

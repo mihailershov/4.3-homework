@@ -1,5 +1,18 @@
 $(function () {
+    function switcher() {
+        var button = $('.switcher'),
+            form = $('form');
+        if (button.html() === 'Нет аккаунта? Зарегистрируйтесь!') {
+            button.html('Уже есть аккаунт?');
+            form.find('input[name=authButton]').attr({'name': 'regButton', 'value': 'Зарегистрироваться'});
+        } else {
+            button.html('Нет аккаунта? Зарегистрируйтесь!');
+            form.find('input[name=regButton]').attr({'name': 'authButton', 'value': 'Войти'});
+        }
+    }
+
     $('form').on('submit', function (e) {
+
         var form = $(this),
             button = form.find('input[type=submit]');
 
@@ -17,20 +30,23 @@ $(function () {
                         $('.error').html(data['error']);
                     }
                 }
+                if (data['notice']) {
+                    if ($('.error').length === 0) {
+                        form.before('<p class="notice">' + data['notice'] + '</p>');
+                    } else {
+                        $('.error').replaceWith('<p class="notice">' + data['notice'] + '</p>');
+                    }
+                    form.find('input[type=text]').val('');
+                    form.find('input[type=password]').val('');
+                    switcher();
+                }
             }
         });
         e.preventDefault();
     });
 
-    $(document).on('click', '.switcher', function () {
-        var button = $('.switcher'),
-            form = $('form');
-        if (button.html() === 'Нет аккаунта? Зарегистрируйтесь!') {
-            button.html('Уже есть аккаунт?');
-            form.find('input[name=authButton]').attr({'name': 'regButton', 'value': 'Зарегистрироваться'});
-        } else {
-            button.html('Нет аккаунта? Зарегистрируйтесь!');
-            form.find('input[name=regButton]').attr({'name': 'authButton', 'value': 'Войти'});
-        }
+    $(document).on('click', '.switcher', function (e) {
+        switcher();
+        e.preventDefault();
     });
 });

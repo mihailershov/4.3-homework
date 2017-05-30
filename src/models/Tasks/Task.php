@@ -16,25 +16,38 @@ class Task extends ConnectDB
         return $this->sendQueryToDb($pdo, $query);
     }
 
+    public function getIdByUser()
+    {
+        $pdo = $this->connectToDb();
+
+        $query = "SELECT id FROM `user` WHERE login = ?";
+
+        $nickname = $_SESSION['user'];
+
+        return $this->sendQueryToDb($pdo, $query, [$nickname])->fetch(\PDO::FETCH_ASSOC)['id'];
+    }
+
     public function addTask()
     {
         $pdo = $this->connectToDb();
 
-        $query = "INSERT INTO task (description, date_added) VALUE (?, NOW())";
+        $query = "INSERT INTO task (description, date_added, user_id, assigned_user_id) VALUES (?, NOW(), ?, ?)";
+
+        $id = $this->getIdByUser();
         $description = (string)(isset($_POST['task']) ? $_POST['task'] : "");
         $description = trim($description);
         if (!strlen($description)) {
             die('зачем же вам задача из одних пробелов?');
         }
 
-        return $this->sendQueryToDb($pdo, $query, [$description]);
+        return $this->sendQueryToDb($pdo, $query, [$description, $id, $id]);
     }
 
     public function getLastTask()
     {
         $pdo = $this->connectToDb();
 
-        $query = "SELECT description, date_added, id FROM task ORDER BY id DESC LIMIT 1";
+        $query = "SELECT * FROM task ORDER BY id DESC LIMIT 1";
 
         $result = $this->sendQueryToDb($pdo, $query)->fetch(\PDO::FETCH_ASSOC);
 

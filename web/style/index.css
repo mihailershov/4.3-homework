@@ -134,6 +134,24 @@ tr:first-child {
     color: black;
 }
 
+.sortForm {
+    display: flex;
+    align-items:center;
+    justify-content: space-around;
+}
+
+.logout {
+    padding-top: 20px;
+}
+
+.tasksNotExist {
+    text-align: center;
+}
+
+.nickname {
+    margin: 0;
+}
+
 .smile {
     text-align: center;
     margin: 20px 0 0;

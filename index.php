@@ -4,6 +4,8 @@ use models\Auth\Auth;
 
 require_once __DIR__ . '/src/core.php';
 
+var_dump($_SESSION);
+
 $auth = new Auth;
 if (!$auth->isAuth()) {
     header('Location: auth.php');
@@ -17,36 +19,39 @@ $allTasks = $task->getAllTasks();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="web/style/index.css">
     <title>Task manager</title>
 </head>
 <body>
 <div id="wrapper">
-    <a class="logout">Выйти</a>
+    <a class="logout" href=".">&larr; Выйти</a>
     <div class="tasks">
         <?php if ($allTasks->rowCount() === 0): ?>
             <p class="smile">&#9785;</p>
-            <p style="text-align: center;"><?php echo $_SESSION['user']; ?>, Вы пока не добавили ни одной задачи</p>
+            <p class="tasksNotExist"><?php echo $_SESSION['user']; ?>, вы пока не добавили ни одной задачи</p>
         <?php else: ?>
-            <h2 style="text-align: center;">Вот ваши задачи, <?php echo $_SESSION['user']; ?></h2>
             <form method="POST" class="sortForm">
-                <label>
-                    Сортировать по:
-                    <select name="sortBy" id="sortBy">
-                        <option value="date">Дате добавления</option>
-                        <option value="status">Статусу</option>
-                        <option value="description">Описанию</option>
-                    </select>
-                </label>
-                <input type="submit" name="sort" id="sort" value="Сортировка">
+                <h2 class="nickname"><?php echo $_SESSION['user']; ?>, это задачи, созданные вами</h2>
+                <div>
+                    <label>
+                        Сортировать по:
+                        <select name="sortBy" id="sortBy">
+                            <option value="date">Дате добавления</option>
+                            <option value="status">Статусу</option>
+                            <option value="description">Описанию</option>
+                        </select>
+                    </label>
+                    <input type="submit" name="sort" id="sort" value="Сортировка">
+                </div>
             </form>
 
             <table>
                 <tr>
                     <td>Задача</td>
+                    <td>Автор</td>
+                    <td>Исполнитель</td>
                     <td>Статус</td>
                     <td>Дата добавления</td>
                     <td>Действия</td>
@@ -54,6 +59,8 @@ $allTasks = $task->getAllTasks();
                 <?php foreach ($allTasks as $task): ?>
                     <tr>
                         <td><?php echo htmlspecialchars($task['description']) ?></td>
+                        <td><?php echo $task['user_id'] ?></td>
+                        <td><?php echo $task['assigned_user_id'] ?></td>
                         <?php echo htmlspecialchars($task['is_done']) ? '<td style="color: green">Выполнено</td>' : '<td style="color: orange">В процессе</td>' ?>
                         <td><?php echo htmlspecialchars($task['date_added']) ?></td>
                         <td>
@@ -72,7 +79,7 @@ $allTasks = $task->getAllTasks();
     </div>
 
     <div class="tasksForYou">
-
+        <h2>А это задачи, созданные другими пользователями для вас:</h2>
     </div>
 
     <div class="forms">
