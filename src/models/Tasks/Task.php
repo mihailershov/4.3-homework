@@ -7,13 +7,36 @@ use models\ConnectDB;
 class Task extends ConnectDB
 {
 
-    public function getAllTasks()
+    public function getTasksOfUser()
     {
         $pdo = $this->connectToDb();
 
-        $query = "SELECT * FROM task";
+        $id = $this->getIdByUser();
+        $query = "
+SELECT t.id, user_id, assigned_user_id, description, u1.login as user_login, u2.login as assigned_user_login, is_done, date_added
+FROM task t
+JOIN user u1 ON t.user_id = u1.id
+JOIN user u2 ON t.assigned_user_id = u2.id
+WHERE user_id = ?
+";
 
-        return $this->sendQueryToDb($pdo, $query);
+        return $this->sendQueryToDb($pdo, $query, [$id]);
+    }
+
+    public function getTasksForUser()
+    {
+        $pdo = $this->connectToDb();
+
+        $id = $this->getIdByUser();
+        $query = "
+SELECT t.id, user_id, assigned_user_id, description, u1.login as user_login, u2.login as assigned_user_login, is_done, date_added
+FROM task t
+JOIN user u1 ON t.user_id = u1.id
+JOIN user u2 ON t.assigned_user_id = u2.id
+WHERE user_id <> ? AND assigned_user_id = ?
+";
+
+        return $this->sendQueryToDb($pdo, $query, [$id, $id]);
     }
 
     public function getIdByUser()
@@ -25,6 +48,26 @@ class Task extends ConnectDB
         $nickname = $_SESSION['user'];
 
         return $this->sendQueryToDb($pdo, $query, [$nickname])->fetch(\PDO::FETCH_ASSOC)['id'];
+    }
+
+    public function getLastTaskOfUser()
+    {
+        $pdo = $this->connectToDb();
+
+        $query = "
+SELECT t.id, user_id, assigned_user_id, description, u1.login as user_login, u2.login as assigned_user_login, is_done, date_added
+FROM task t
+JOIN user u1 ON t.user_id = u1.id
+JOIN user u2 ON t.assigned_user_id = u2.id
+WHERE user_id = ?
+ORDER BY id DESC LIMIT 1
+";
+        $id = $this->getIdByUser();
+
+        $result = $this->sendQueryToDb($pdo, $query, [$id])->fetch(\PDO::FETCH_ASSOC);
+        $result = json_encode($result);
+
+        return $result;
     }
 
     public function addTask()
@@ -41,18 +84,6 @@ class Task extends ConnectDB
         }
 
         return $this->sendQueryToDb($pdo, $query, [$description, $id, $id]);
-    }
-
-    public function getLastTask()
-    {
-        $pdo = $this->connectToDb();
-
-        $query = "SELECT * FROM task ORDER BY id DESC LIMIT 1";
-
-        $result = $this->sendQueryToDb($pdo, $query)->fetch(\PDO::FETCH_ASSOC);
-
-        $result = json_encode($result);
-        return $result;
     }
 
     public function setTaskIsDone()

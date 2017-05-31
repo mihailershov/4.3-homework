@@ -4,22 +4,22 @@ use models\Auth\Auth;
 
 require_once __DIR__ . '/src/core.php';
 
-var_dump($_SESSION);
-
 $auth = new Auth;
 if (!$auth->isAuth()) {
     header('Location: auth.php');
 }
 
 $task = new models\Tasks\Task;
-$allTasks = $task->getAllTasks();
+$tasksOfUser = $task->getTasksOfUser();
+$tasksForUser = $task->getTasksForUser();
 
 ?>
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="web/style/index.css">
     <title>Task manager</title>
@@ -28,7 +28,7 @@ $allTasks = $task->getAllTasks();
 <div id="wrapper">
     <a class="logout" href=".">&larr; Выйти</a>
     <div class="tasks">
-        <?php if ($allTasks->rowCount() === 0): ?>
+        <?php if ($tasksOfUser->rowCount() === 0): ?>
             <p class="smile">&#9785;</p>
             <p class="tasksNotExist"><?php echo $_SESSION['user']; ?>, вы пока не добавили ни одной задачи</p>
         <?php else: ?>
@@ -47,7 +47,7 @@ $allTasks = $task->getAllTasks();
                 </div>
             </form>
 
-            <table>
+            <table class="tasksOfUser">
                 <tr>
                     <td>Задача</td>
                     <td>Автор</td>
@@ -56,30 +56,61 @@ $allTasks = $task->getAllTasks();
                     <td>Дата добавления</td>
                     <td>Действия</td>
                 </tr>
-                <?php foreach ($allTasks as $task): ?>
+                <?php foreach ($tasksOfUser as $theTask): ?>
                     <tr>
-                        <td><?php echo htmlspecialchars($task['description']) ?></td>
-                        <td><?php echo $task['user_id'] ?></td>
-                        <td><?php echo $task['assigned_user_id'] ?></td>
-                        <?php echo htmlspecialchars($task['is_done']) ? '<td style="color: green">Выполнено</td>' : '<td style="color: orange">В процессе</td>' ?>
-                        <td><?php echo htmlspecialchars($task['date_added']) ?></td>
+                        <td><?php echo htmlspecialchars($theTask['description']) ?></td>
+                        <td>Вы</td>
+                        <td><?php echo $theTask['assigned_user_login'] == $_SESSION['user'] ? 'Вы' : htmlspecialchars($theTask['user_login']) ?></td>
+                        <?php echo htmlspecialchars($theTask['is_done']) ? '<td style="color: green">Выполнено</td>' : '<td style="color: orange">В процессе</td>' ?>
+                        <td><?php echo htmlspecialchars($theTask['date_added']) ?></td>
                         <td>
                             <p class='edit link'>Изменить &#9998;</p>
-                            <?php if (!$task['is_done']): ?>
+                            <?php if (!$theTask['is_done']): ?>
                                 <p class='done link'>Выполнить &#10004;</p>
                             <?php endif; ?>
                             <p class='delete link'>Удалить &cross;</p>
-                            <input type="hidden" value="<?php echo $task['id'] ?>">
+                            <input type="hidden" value="<?php echo $theTask['id'] ?>">
                         </td>
                     </tr>
                 <?php endforeach; ?>
             </table>
         <?php endif; ?>
-
     </div>
 
     <div class="tasksForYou">
-        <h2>А это задачи, созданные другими пользователями для вас:</h2>
+        <?php if ($tasksForUser->rowCount() === 0): ?>
+            <p class="smile">&#9785;</p>
+            <p class="tasksNotExist"><?php echo $_SESSION['user']; ?>, для вас пока не добавили ни одной задачи</p>
+        <?php else: ?>
+            <h2>А это задачи, созданные другими пользователями для вас:</h2>
+            <table class="tasksForUser">
+                <tr>
+                    <td>Задача</td>
+                    <td>Автор</td>
+                    <td>Исполнитель</td>
+                    <td>Статус</td>
+                    <td>Дата добавления</td>
+                    <td>Действия</td>
+                </tr>
+                <?php foreach ($tasksForUser as $theTask): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($theTask['description']) ?></td>
+                        <td><?php echo htmlspecialchars($theTask['user_login']) ?></td>
+                        <td>Вы</td>
+                        <?php echo htmlspecialchars($theTask['is_done']) ? '<td style="color: green">Выполнено</td>' : '<td style="color: orange">В процессе</td>' ?>
+                        <td><?php echo htmlspecialchars($theTask['date_added']) ?></td>
+                        <td>
+                            <p class='edit link'>Изменить &#9998;</p>
+                            <?php if (!$theTask['is_done']): ?>
+                                <p class='done link'>Выполнить &#10004;</p>
+                            <?php endif; ?>
+                            <p class='delete link'>Удалить &cross;</p>
+                            <input type="hidden" value="<?php echo $theTask['id'] ?>">
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+        <?php endif; ?>
     </div>
 
     <div class="forms">

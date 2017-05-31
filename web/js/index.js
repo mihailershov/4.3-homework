@@ -1,7 +1,6 @@
 $(function () {
 
     var nickname;
-
     $.post({
         url: 'src/controllers/authController.php',
         data: 'getNickname=1',
@@ -23,8 +22,8 @@ $(function () {
                 var tableRow =
                         $('<tr>' +
                             '<td>' + data['description'] + '</td>' +
-                            '<td>' + data['user_id'] + '</td>' +
-                            '<td>' + data['assigned_user_id'] + '</td>' +
+                            '<td>' + data['user_login'] + ' (Вы)</td>' +
+                            '<td>' + data['assigned_user_login'] + ' (Вы)</td>' +
                             '<td style="color: orange">В процессе</td>' +
                             '<td>' + data['date_added'] + '</td>' +
                             '<td>' +
@@ -35,7 +34,7 @@ $(function () {
                             '</td>' +
                             '</tr>'),
                     tableRowWithoutSelector = tableRow[0]['outerHTML'],
-                    table = $('table');
+                    table = $('.tasksOfUser');
 
                 if (table.length === 1) { // Если таблица есть, просто вставить задачу (+ анимация цвета при добавлении)
                     table.append(tableRow);
@@ -61,7 +60,7 @@ $(function () {
                         '<input type="submit" name="sort" id="sort" value="Сортировка"> ' +
                         '</div>' +
                         '</form>' +
-                        '<table>' +
+                        '<table class="tasksOfUser">' +
                         '<tr>' +
                         '<td>Задача</td>' +
                         '<td>Автор</td>' +
@@ -82,7 +81,7 @@ $(function () {
                 }
             },
             error: function (data) { // При ошибке показать уведомление
-                form.prepend('<p class="notice" style="color: red">Произошла ошибка, попробуйте еще раз! (' + data.responseText + ')</p>');
+                form.prepend('<p class="notice" style="color: red">' + data.responseText + '</p>');
                 $('.notice').delay(1500).fadeOut(1000, function () {
                     $(this).css({
                         'display': 'block',
@@ -115,7 +114,7 @@ $(function () {
     $(document).on('click', '.done', function () {
         var div = $(this),
             id = div.closest('td').find('input[type=hidden]').val(),
-            isDoneTd = div.closest('tr').children('td:eq(1)');
+            isDoneTd = div.closest('tr').children('td:eq(3)');
 
         if (isDoneTd.text() === 'Выполнено') { // Если уже выполненная, то ничего не делать
             return;

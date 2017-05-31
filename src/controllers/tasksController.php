@@ -8,7 +8,7 @@ $task = new models\Tasks\Task;
 
 if (!empty($_POST['addTask'])) {
     $task->addTask();
-    echo $task->getLastTask();
+    echo $task->getLastTaskOfUser();
 }
 
 if (!empty($_POST['done'])) {

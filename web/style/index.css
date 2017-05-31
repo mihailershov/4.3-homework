@@ -92,6 +92,17 @@ table {
     width: 1000px;
 }
 
+.tasksForYou {
+    width: 1000px;
+}
+
+.tasksForUser {
+    border-collapse: collapse;
+    border: 1px solid black;
+    width: calc(100% - 40px);
+    margin: 20px 20px 0;
+}
+
 .notice {
     color: darkgreen;
 }
