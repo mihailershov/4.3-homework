@@ -1,6 +1,8 @@
 $(function () {
 
+    // Сюда запишем ник пользователя
     var nickname;
+    // Получаем имя текущего пользователя
     $.post({
         url: 'src/controllers/authController.php',
         data: 'getNickname=1',
@@ -9,6 +11,16 @@ $(function () {
         }
     });
 
+    function addUsersToSelect() {
+        $('.assignedUser').each(function () {
+            var select = $(this);
+            $.each(users, function () {
+                select.append('<option value="' + this['id'] + '">' + this['login'] + '</option>');
+            });
+        });
+    }
+
+    // Добавить задачу
     $('.addTaskForm').on('submit', function (e) { // Обработка формы добавления задачи
         var description = $('textarea'),
             form = $(this);
@@ -19,22 +31,32 @@ $(function () {
             dataType: 'json',
             cache: false,
             success: function (data) { // При успехе добавляем задачу в таблицу
-                var tableRow =
+                var nick = data['assigned_user_login'] == nickname ? 'Вы' : data['assigned_user_login'],
+                    tableRow =
                         $('<tr>' +
                             '<td>' + data['description'] + '</td>' +
-                            '<td>' + data['user_login'] + ' (Вы)</td>' +
-                            '<td>' + data['assigned_user_login'] + ' (Вы)</td>' +
+                            '<td>Вы</td>' +
+                            '<td>' + nick + '</td>' +
                             '<td style="color: orange">В процессе</td>' +
                             '<td>' + data['date_added'] + '</td>' +
                             '<td>' +
                             '<p class=\'edit link\'>Изменить &#9998; </p>' +
                             '<p class=\'done link\'>Выполнить &#10004; </p>' +
                             '<p class=\'delete link\'>Удалить &cross; </p>' +
+                            '<form method="POST" class="changeAssignedUser">' +
+                            '<label>' +
+                            '<input type="submit" value="Сменить исполнителя" name="changeAssignedUser"> ' +
+                            '<select name="assignedUser" class="assignedUser">' +
+                            '</select>' +
+                            '</label>' +
+                            '</form>' +
                             '<input type="hidden" value="' + data['id'] + '">' +
                             '</td>' +
                             '</tr>'),
                     tableRowWithoutSelector = tableRow[0]['outerHTML'],
                     table = $('.tasksOfUser');
+
+                addUsersToSelect();
 
                 if (table.length === 1) { // Если таблица есть, просто вставить задачу (+ анимация цвета при добавлении)
                     table.append(tableRow);
@@ -99,7 +121,6 @@ $(function () {
         e.preventDefault(); // Отменяем стандартное поведение формы
     });
 
-
     // Отправка содержимого textarea на enter
     $('textarea').on('keypress', function (e) {
         var code = (e.keyCode ? e.keyCode : e.which);
@@ -111,23 +132,27 @@ $(function () {
     });
 
     // Отметить задачу, как выполненную
-    $(document).on('click', '.done', function () {
+    $(document).on('click', '.is_done_changer', function () {
         var div = $(this),
             id = div.closest('td').find('input[type=hidden]').val(),
             isDoneTd = div.closest('tr').children('td:eq(3)');
 
-        if (isDoneTd.text() === 'Выполнено') { // Если уже выполненная, то ничего не делать
-            return;
-        }
-
         $.post({
             url: 'src/controllers/tasksController.php',
-            data: {done: 'true', id: id},
+            data: {isDoneChange: 1, id: id},
             success: function (data) {
-                isDoneTd.text(data).css({
-                    'color': 'green'
+                console.log(data);
+                var dataBoolean = (data == 0),
+                    status = dataBoolean ? 'В процессе' : 'Выполнено',
+                    color = dataBoolean ? 'orange' : 'green',
+                    button = dataBoolean ? 'Выполнить &#10004;' : 'Не выполнить X';
+
+                isDoneTd.text(status).css({
+                    'color': color
                 });
-                div.fadeOut('fast');
+
+                div.html(button);
+
             }
         });
     });
@@ -203,8 +228,21 @@ $(function () {
         })
     });
 
+    // Сортировка таблицы
     $(document).on('submit', '.sortForm', function (e) {
-        var form = $(this);
+        var form = $(this),
+            users;
+
+        $.post({
+            url: 'src/controllers/tasksController.php',
+            data: {getAllUsers: 1},
+            dataType: 'json',
+            cache: false,
+            success: function (data) {
+                users = data;
+            }
+        });
+
         $.post({
             url: 'src/controllers/tasksController.php',
             data: form.serialize(),
@@ -213,34 +251,59 @@ $(function () {
             success: function (data) {
                 $('table tr:not(:first)').remove();
                 $.each(data, function (key, value) {
-                    var isDone = value['is_done'];
-                    if (isDone == 0) {
-                        var processTd = '<td style="color: orange">В процессе</td>',
-                            done = '<p class=\'done link\'>Выполнить &#10004; </p>';
-                    } else {
-                        var processTd = '<td style="color: green">Выполнено</td>',
-                            done = '';
-                    }
+                    var isDone = (value['is_done'] != 0),
+                        processTd = isDone ? '<td style="color: green">Выполнено</td>' : '<td style="color: orange">В процессе</td>',
+                        done = isDone ? '<p class=\'is_done_changer link\'>Не выполнить X </p>' : '<p class=\'is_done_changer link\'>Выполнить &#10004; </p>',
+                        user = (nickname == value['user_login']) ? 'Вы' : value['user_login'],
+                        assigned_user = (nickname == value['assigned_user_login']) ? 'Вы' : value['assigned_user_login'];
 
-                    $('table').append(
+                    $('.tasksOfUser').append(
                         '<tr>' +
                         '<td>' + value['description'] + '</td>' +
+                        '<td>' + user + '</td>' +
+                        '<td>' + assigned_user + '</td>' +
                         processTd +
                         '<td>' + value['date_added'] + '</td>' +
                         '<td>' +
                         '<p class=\'edit link\'>Изменить &#9998; </p>' +
                         done +
                         '<p class=\'delete link\'>Удалить &cross; </p>' +
+                        '<form method="POST" class="changeAssignedUser">' +
+                        '<label>' +
+                        '<input type="submit" value="Сменить исполнителя" name="changeAssignedUser"> ' +
+                        '<select name="assignedUser" class="assignedUser">' +
+                        '</select>' +
+                        '</label>' +
+                        '</form>' +
                         '<input type="hidden" value="' + value['id'] + '">' +
                         '</td>' +
                         '</tr>'
-                    )
+                    );
+                    addUsersToSelect();
                 });
             }
         });
         e.preventDefault();
     });
 
+    // Изменить исполнителя задачи
+    $(document).on('submit', '.changeAssignedUser', function (e) {
+        var form = $(this),
+            id = form.closest('td').find('input[type=hidden]').val(),
+            assignedUserTd = form.closest('tr').find('td:eq(2)');
+
+        $.post({
+            url: 'src/controllers/tasksController.php',
+            data: form.serialize() + '&changeAssignedUser=1&id=' + id,
+            success: function (data) {
+                var content = data == nickname ? 'Вы' : data;
+                assignedUserTd.text(content);
+            }
+        });
+        e.preventDefault();
+    });
+
+    // Выход из приложения
     $('.logout').on('click', function () {
         $.post({
             url: 'src/controllers/authController.php',

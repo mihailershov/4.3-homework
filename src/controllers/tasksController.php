@@ -11,8 +11,13 @@ if (!empty($_POST['addTask'])) {
     echo $task->getLastTaskOfUser();
 }
 
-if (!empty($_POST['done'])) {
-    echo $task->setTaskIsDone() ? 'Выполнено' : 'В процессе';
+if (!empty($_POST['getAllUsers'])) {
+    $user = new models\Users\User;
+    echo json_encode($user->getAllUsers());
+}
+
+if (!empty($_POST['isDoneChange'])) {
+    echo $task->changeTaskStatus();
 }
 
 if (!empty($_POST['delete'])) {
@@ -26,4 +31,9 @@ if (!empty($_POST['editDescription'])) {
 if (!empty($_POST['sortBy'])) {
     $table = new models\Tasks\TaskTable;
     echo $table->sortTable($_POST['sortBy']);
+}
+
+if (!empty($_POST['changeAssignedUser'])) {
+    if (empty($_POST['assignedUser'])) die;
+    echo $task->changeAssignedUser($_POST['assignedUser']);
 }

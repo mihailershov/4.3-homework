@@ -13,6 +13,9 @@ $task = new models\Tasks\Task;
 $tasksOfUser = $task->getTasksOfUser();
 $tasksForUser = $task->getTasksForUser();
 
+$user = new models\Users\User;
+$users = $user->getAllUsers();
+
 ?>
 <!doctype html>
 <html lang="en">
@@ -60,15 +63,27 @@ $tasksForUser = $task->getTasksForUser();
                     <tr>
                         <td><?php echo htmlspecialchars($theTask['description']) ?></td>
                         <td>Вы</td>
-                        <td><?php echo $theTask['assigned_user_login'] == $_SESSION['user'] ? 'Вы' : htmlspecialchars($theTask['user_login']) ?></td>
+                        <td><?php echo $theTask['assigned_user_login'] == $_SESSION['user'] ? 'Вы' : htmlspecialchars($theTask['assigned_user_login']) ?></td>
                         <?php echo htmlspecialchars($theTask['is_done']) ? '<td style="color: green">Выполнено</td>' : '<td style="color: orange">В процессе</td>' ?>
                         <td><?php echo htmlspecialchars($theTask['date_added']) ?></td>
                         <td>
                             <p class='edit link'>Изменить &#9998;</p>
                             <?php if (!$theTask['is_done']): ?>
-                                <p class='done link'>Выполнить &#10004;</p>
+                                <p class='is_done_changer link'>Выполнить &#10004;</p>
+                            <?php else: ?>
+                                <p class='is_done_changer link'>Не выполнить X</p>
                             <?php endif; ?>
                             <p class='delete link'>Удалить &cross;</p>
+                            <form method="POST" class="changeAssignedUser">
+                                <label>
+                                    <input type="submit" value="Сменить исполнителя" name="changeAssignedUser">
+                                    <select name="assignedUser">
+                                        <?php foreach ($users as $theUser): ?>
+                                            <option value="<?php echo htmlspecialchars($theUser['id']) ?>"><?php echo htmlspecialchars($theUser['login']) ?>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </label>
+                            </form>
                             <input type="hidden" value="<?php echo $theTask['id'] ?>">
                         </td>
                     </tr>
@@ -101,8 +116,10 @@ $tasksForUser = $task->getTasksForUser();
                         <td><?php echo htmlspecialchars($theTask['date_added']) ?></td>
                         <td>
                             <p class='edit link'>Изменить &#9998;</p>
-                            <?php if (!$theTask['is_done']): ?>
-                                <p class='done link'>Выполнить &#10004;</p>
+                            <?php if (!$theTask['is_done']):?>
+                                <p class='is_done_changer link'>Выполнить &#10004;</p>
+                            <?php else: ?>
+                                <p class='is_done_changer link'>Не выполнить X</p>
                             <?php endif; ?>
                             <p class='delete link'>Удалить &cross;</p>
                             <input type="hidden" value="<?php echo $theTask['id'] ?>">

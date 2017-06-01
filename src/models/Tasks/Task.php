@@ -13,11 +13,19 @@ class Task extends ConnectDB
 
         $id = $this->getIdByUser();
         $query = "
-SELECT t.id, user_id, assigned_user_id, description, u1.login as user_login, u2.login as assigned_user_login, is_done, date_added
+SELECT t.id,
+user_id, 
+assigned_user_id, 
+description, 
+u1.login AS user_login, 
+u2.login AS assigned_user_login, 
+is_done, 
+date_added
 FROM task t
 JOIN user u1 ON t.user_id = u1.id
 JOIN user u2 ON t.assigned_user_id = u2.id
 WHERE user_id = ?
+ORDER BY date_added ASC
 ";
 
         return $this->sendQueryToDb($pdo, $query, [$id]);
@@ -29,11 +37,12 @@ WHERE user_id = ?
 
         $id = $this->getIdByUser();
         $query = "
-SELECT t.id, user_id, assigned_user_id, description, u1.login as user_login, u2.login as assigned_user_login, is_done, date_added
+SELECT t.id, user_id, assigned_user_id, description, u1.login AS user_login, u2.login AS assigned_user_login, is_done, date_added
 FROM task t
 JOIN user u1 ON t.user_id = u1.id
 JOIN user u2 ON t.assigned_user_id = u2.id
 WHERE user_id <> ? AND assigned_user_id = ?
+ORDER BY date_added ASC
 ";
 
         return $this->sendQueryToDb($pdo, $query, [$id, $id]);
@@ -50,12 +59,21 @@ WHERE user_id <> ? AND assigned_user_id = ?
         return $this->sendQueryToDb($pdo, $query, [$nickname])->fetch(\PDO::FETCH_ASSOC)['id'];
     }
 
+    public function getUserById($id)
+    {
+        $pdo = $this->connectToDb();
+
+        $query = "SELECT login FROM user WHERE id = ?";
+
+        return $this->sendQueryToDb($pdo, $query, [$id])->fetch(\PDO::FETCH_ASSOC);
+    }
+
     public function getLastTaskOfUser()
     {
         $pdo = $this->connectToDb();
 
         $query = "
-SELECT t.id, user_id, assigned_user_id, description, u1.login as user_login, u2.login as assigned_user_login, is_done, date_added
+SELECT t.id, user_id, assigned_user_id, description, u1.login AS user_login, u2.login AS assigned_user_login, is_done, date_added
 FROM task t
 JOIN user u1 ON t.user_id = u1.id
 JOIN user u2 ON t.assigned_user_id = u2.id
@@ -68,6 +86,15 @@ ORDER BY id DESC LIMIT 1
         $result = json_encode($result);
 
         return $result;
+    }
+
+    public function getTaskById($id)
+    {
+        $pdo = $this->connectToDb();
+
+        $query = "SELECT * FROM task WHERE id = ?";
+
+        return $this->sendQueryToDb($pdo, $query, [$id])->fetch();
     }
 
     public function addTask()
@@ -86,15 +113,36 @@ ORDER BY id DESC LIMIT 1
         return $this->sendQueryToDb($pdo, $query, [$description, $id, $id]);
     }
 
-    public function setTaskIsDone()
+    public function changeTaskStatus()
     {
         $pdo = $this->connectToDb();
 
-        $query = "UPDATE task SET is_done = 1 WHERE id = ?";
         $id = (int)!empty($_POST['id']) ? $_POST['id'] : 0;
+        $task = $this->getTaskById($id);
+
+        if (!$task['is_done']) {
+            $query = "UPDATE task SET is_done = 1 WHERE id = ?";
+        } else {
+            $query = "UPDATE task SET is_done = 0 WHERE id = ?";
+        }
 
         $this->sendQueryToDb($pdo, $query, [$id]);
-        return true;
+        return $this->getTaskById($id)['is_done'];
+    }
+
+    public function changeAssignedUser($user_id)
+    {
+        $pdo = $this->connectToDb();
+
+        $query = "UPDATE task SET assigned_user_id = ? WHERE id = ?";
+
+        $task_id = (int) !empty($_POST['id']) ? $_POST['id'] : 0;
+        if (!$task_id) die;
+        $user_id = (int) !empty($user_id) ? $user_id : 0;
+        if (!$user_id) die;
+
+        $this->sendQueryToDb($pdo, $query, [$user_id, $task_id]);
+        return $this->getUserById($user_id)['login'];
     }
 
     public function deleteTask()
