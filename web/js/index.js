@@ -37,31 +37,32 @@ $(function () {
                 var nick = data['assigned_user_login'] == nickname ? 'Вы' : data['assigned_user_login'],
                     tableRow =
                         $('<tr>' +
-                            '<td>' + data['description'] + '</td>' +
-                            '<td>Вы</td>' +
-                            '<td>' + nick + '</td>' +
-                            '<td style="color: orange">В процессе</td>' +
-                            '<td>' + data['date_added'] + '</td>' +
-                            '<td>' +
-                            '<p class=\'edit link\'>Изменить &#9998; </p>' +
-                            '<p class=\'is_done_changer link\'>Выполнить &#10004; </p>' +
-                            '<p class=\'delete link\'>Удалить &cross; </p>' +
-                            '<form method="POST" class="changeAssignedUser">' +
-                            '<label>' +
-                            '<input type="submit" value="Сменить исполнителя" name="changeAssignedUser"> ' +
-                            '<select name="assignedUser" class="assignedUser">' +
-                            '</select>' +
-                            '</label>' +
-                            '</form>' +
-                            '<input type="hidden" value="' + data['id'] + '">' +
-                            '</td>' +
-                            '</tr>'),
-                    tableRowWithoutSelector = tableRow[0]['outerHTML'],
-                    table = $('.tasksOfUser');
+                        '<td>' + data['description'] + '</td>' +
+                        '<td>Вы</td>' +
+                        '<td>' + nick + '</td>' +
+                        '<td style="color: orange">В процессе</td>' +
+                        '<td>' + data['date_added'] + '</td>' +
+                        '<td>' +
+                        '<p class=\'edit link\'>Изменить &#9998; </p>' +
+                        '<p class=\'is_done_changer link\'>Выполнить &#10004; </p>' +
+                        '<p class=\'delete link\'>Удалить &cross; </p>' +
+                        '<form method="POST" class="changeAssignedUser">' +
+                        '<label>' +
+                        '<input type="submit" value="Сменить исполнителя" name="changeAssignedUser"> ' +
+                        '<select name="assignedUser" class="assignedUser">' +
+                        '</select>' +
+                        '</label>' +
+                        '</form>' +
+                        '<input type="hidden" value="' + data['id'] + '">' +
+                        '</td>' +
+                        '</tr>');
 
                 $.each(users, function () {
                     tableRow.find('select').append('<option value="' + this['id'] + '">' + this['login'] + '</option>');
                 });
+
+                var tableRowWithoutSelector = tableRow[0]['outerHTML'],
+                    table = $('.tasksOfUser');
 
                 if (table.length === 1) { // Если таблица есть, просто вставить задачу (+ анимация цвета при добавлении)
                     table.append(tableRow);
@@ -99,6 +100,10 @@ $(function () {
                         tableRowWithoutSelector +
                         '</table>'
                     );
+
+                    $.each(users, function () {
+                        tableRow.find('select').append('<option value="' + this['id'] + '">' + this['login'] + '</option>');
+                    });
 
                     tasks.find('tr:eq(1)').css({
                         backgroundColor: 'lightgreen'
@@ -323,11 +328,6 @@ $(function () {
             success: function (data) {
                 var content = data == nickname ? 'Вы' : data;
                 assignedUserTd.text(content);
-                assignedUserTd.css({
-                    backgroundColor: 'lightgreen'
-                }).animate({
-                    backgroundColor: 'inherit'
-                })
             }
         });
         e.preventDefault();
