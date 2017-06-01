@@ -36,7 +36,6 @@ $users = $user->getAllUsers();
             <p class="tasksNotExist"><?php echo $_SESSION['user']; ?>, вы пока не добавили ни одной задачи</p>
         <?php else: ?>
             <form method="POST" class="sortForm">
-                <h2 class="nickname"><?php echo $_SESSION['user']; ?>, это задачи, созданные вами</h2>
                 <div>
                     <label>
                         Сортировать по:
@@ -48,6 +47,7 @@ $users = $user->getAllUsers();
                     </label>
                     <input type="submit" name="sort" id="sort" value="Сортировка">
                 </div>
+                <h2 class="nickname"><?php echo $_SESSION['user']; ?>, это задачи, созданные вами</h2>
             </form>
 
             <table class="tasksOfUser">

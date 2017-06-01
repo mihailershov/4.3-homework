@@ -137,6 +137,10 @@ tr:first-child {
     color: grey;
 }
 
+h2 {
+    text-align: center;
+}
+
 .link:hover {
     cursor: pointer;
     color: black;
@@ -145,8 +149,17 @@ tr:first-child {
 .sortForm {
     display: flex;
     align-items:center;
+    flex-direction:column;
     margin: 20px 20px 0 20px;
     justify-content: space-around;
+}
+
+.sortForm h2 {
+    padding-bottom: 9px;
+}
+
+.sortForm div {
+    padding-bottom: 20px;
 }
 
 .logout {
